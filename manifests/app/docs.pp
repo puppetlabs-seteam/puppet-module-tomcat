@@ -3,6 +3,7 @@ class tomcat::app::docs {
 
   package { $::tomcat::params::docs_package:
     ensure => installed,
+    notify => Service['tomcat'],
   }
 
 }

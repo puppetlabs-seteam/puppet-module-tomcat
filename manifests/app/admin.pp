@@ -3,6 +3,7 @@ class tomcat::app::admin {
 
   package { $::tomcat::params::admin_package:
     ensure => installed,
+    notify => Service['tomcat'],
   }
 
 }
