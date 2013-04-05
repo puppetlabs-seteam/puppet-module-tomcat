@@ -1,6 +1,6 @@
 class tomcat::params {
 
-  $package = 'tomcat6',
-  $service = 'tomcat6',
+  $package = 'tomcat6'
+  $service = 'tomcat6'
 
 }
