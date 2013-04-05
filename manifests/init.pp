@@ -1,6 +1,6 @@
 class tomcat (
   $version = 'present',
-  $package = $tomcat::params::package,
+  $package = $tomcat::params::tomcat_package,
 ) inherits tomcat::params {
   include java
 
