@@ -7,4 +7,4 @@ summary 'Puppet Labs SE Team Tomcat Module'
 description 'Deploys and manages a Tomcat service'
 project_page 'https://github.com/puppetlabs-seteam/puppet-module-tomcat'
 
-dependency 'puppetlabs/java', '>= 0.3.0'
+dependency 'puppetlabs/java', '>= 0.2.0'
