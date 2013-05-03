@@ -1,6 +1,7 @@
 class tomcat::params {
 
   case $::osfamily {
+    default: { fail("unsupported OS: ${::osfamily}") }
     'RedHat': {
       $tomcat_package  = 'tomcat6'
       $admin_package   = 'tomcat6-admin-webapps'
