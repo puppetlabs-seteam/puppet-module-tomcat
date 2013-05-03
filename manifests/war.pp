@@ -2,6 +2,7 @@ define tomcat::war(
   $source,
   $ensure       = present,
   $target       = undef,
+  $replace      = false,
 ) {
 
   # Use the deployment directory + the app name as the default Tomcat target
@@ -9,6 +10,10 @@ define tomcat::war(
     undef   => "${tomcat::params::autodeploy_dir}/${name}",
     default => $target,
   }
+
+  # Retrieve (and enforce) the *.war name component of the source
+  $warfile = regsubst($source, '.*/([^/]*\.war$)|.*', '\1')
+  if ! $warfile { fail("Must specify a warfile (*.war) as source") }
 
   case $ensure {
     default: { fail("ensure value must be present or absent; not ${ensure}") }
@@ -24,11 +29,11 @@ define tomcat::war(
       # For war files the staging module extracts to cwd, so ensure the dir.
       file { $use_target:
         ensure => directory,
-        before => Staging::Extract["tomcat_war_${title}.war"],
+        before => Staging::Extract[$warfile],
       }
 
       # Staging::Deploy is a combo declaring Staging::File and Staging::Extract
-      staging::deploy { "tomcat_war_${title}.war":
+      staging::deploy { $warfile:
         source  => $source,
         target  => $use_target,
         unless  => "[ \"`ls -A ${use_target} 2>/dev/null`\" ]",
@@ -40,9 +45,9 @@ define tomcat::war(
       exec { "purge_tomcat_war_${title}":
         command     => shellquote('/bin/rm', '-rf', $use_target),
         refreshonly => true,
-        subscribe   => Staging::File["tomcat_war_${title}.war"],
+        subscribe   => Staging::File[$warfile],
         before      => [
-          Staging::Extract["tomcat_war_${title}.war"],
+          Staging::Extract[$warfile],
           File[$use_target],
         ],
       }
