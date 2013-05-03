@@ -16,4 +16,9 @@ class tomcat (
     name   => $tomcat::params::service,
   }
 
+  file { $tomcat::params::autodeploy_dir:
+    ensure  => directory,
+    notify  => Service['tomcat'],
+  }
+
 }
