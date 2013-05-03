@@ -1,8 +1,9 @@
 define tomcat::war(
   $source,
-  $ensure       = present,
-  $target       = undef,
-  $replace      = false,
+  $ensure  = present,
+  $target  = undef,
+  $warfile = undef,
+  $replace = false,
 ) {
 
   # Use the deployment directory + the app name as the default Tomcat target
@@ -12,8 +13,12 @@ define tomcat::war(
   }
 
   # Retrieve (and enforce) the *.war name component of the source
-  $warfile = regsubst($source, '.*/([^/]*\.war$)|.*', '\1')
-  if ! $warfile { fail("Must specify a warfile (*.war) as source") }
+  $use_warfile = $warfile ? {
+    undef   => regsubst($source, '.*/([^/]*\.war$)|.*', '\1'),
+    default => $warfile,
+  }
+
+  if ! $use_warfile { fail("Must specify a warfile (*.war) as source") }
 
   case $ensure {
     default: { fail("ensure value must be present or absent; not ${ensure}") }
@@ -29,11 +34,11 @@ define tomcat::war(
       # For war files the staging module extracts to cwd, so ensure the dir.
       file { $use_target:
         ensure => directory,
-        before => Staging::Extract[$warfile],
+        before => Staging::Extract[$use_warfile],
       }
 
       # Staging::Deploy is a combo declaring Staging::File and Staging::Extract
-      staging::deploy { $warfile:
+      staging::deploy { $use_warfile:
         source  => $source,
         target  => $use_target,
         unless  => "[ \"`ls -A ${use_target} 2>/dev/null`\" ]",
@@ -45,11 +50,21 @@ define tomcat::war(
       exec { "purge_tomcat_war_${title}":
         command     => shellquote('/bin/rm', '-rf', $use_target),
         refreshonly => true,
-        subscribe   => Staging::File[$warfile],
+        subscribe   => Staging::File[$use_warfile],
         before      => [
-          Staging::Extract[$warfile],
+          Staging::Extract[$use_warfile],
           File[$use_target],
         ],
+      }
+
+      # Optionally, always enforce the contents of the warfile. This stanza
+      # is dependent on the inner workings of the staging module. The optimal
+      # thing to do would be to update staging::file to support replace as a
+      # parameter. As it stands it is subject to parse-order problems.
+      if $replace {
+        File <| title == "${staging::path}/tomcat/${warfile}" |> {
+          replace => true,
+        }
       }
 
     }
