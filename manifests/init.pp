@@ -18,7 +18,9 @@ class tomcat (
 
   file { $tomcat::params::autodeploy_dir:
     ensure  => directory,
-    notify  => Service['tomcat'],
+  }
+  file { $tomcat::params::staging_dir:
+    ensure  => directory,
   }
 
 }
