@@ -5,6 +5,7 @@ define tomcat::war(
   $warfile = undef,
   $replace = false,
 ) {
+  $deploy_symlink = "${tomcat::params::autodeploy_dir}/${name}"
 
   # Retrieve (and enforce) the *.war name component of the source
   $use_warfile = $warfile ? {
@@ -60,7 +61,7 @@ define tomcat::war(
       }
 
       # To make the thing live, use a symlink in the autodeploy directory
-      file { "${tomcat::params::autodeploy_dir}/${name}":
+      file { $deploy_symlink:
         ensure  => symlink,
         target  => $use_staging,
         require => Staging::Extract[$use_warfile],
@@ -80,8 +81,11 @@ define tomcat::war(
     }
     'absent': {
 
-      # When ensuring absent, just remove the extracted dir
-      file { $use_target:
+      file { $deploy_symlink:
+        ensure => absent,
+        notify => Service['tomcat'],
+      }
+      file { $use_staging:
         ensure  => absent,
         recurse => true,
         purge   => true,
