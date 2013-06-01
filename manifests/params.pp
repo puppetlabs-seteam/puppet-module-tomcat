@@ -12,6 +12,7 @@ class tomcat::params {
       $tomcat_package  = 'tomcat6'
       $user            = 'tomcat'
       $user_homedir    = '/usr/share/tomcat6'
+      $extra_packages  = ['tomcat6-webapps']
     }
     'Debian': {
       $admin_package   = 'tomcat6-admin'
@@ -23,6 +24,7 @@ class tomcat::params {
       $tomcat_package  = 'tomcat6'
       $user            = 'tomcat6'
       $user_homedir    = '/usr/share/tomcat6'
+      $extra_packages  = []
     }
   }
 
